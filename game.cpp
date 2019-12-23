@@ -7,6 +7,9 @@
 #include<stdio.h>
 #include<string.h>
 #include<math.h>
+#include<iostream>
+#include<fstream>
+#include<string>
 
 /*Definisanje makroa za PI, tajmere i maksimalan broj karaktera*/
 #define PI 3.141592653589
@@ -15,7 +18,6 @@
 #define TIMER_ID1 1
 #define TIMER_INTERVAL 20
 #define MAKSIMALAN_BROJ_KARAKTERA 256
-
 
 /*Deklaracija callback funkcija*/
 static void on_keyboard(unsigned char key, int x, int y);
@@ -40,6 +42,8 @@ void nacrtajMuniciju();
 
 /*Funkcija za dodavanje teksta*/
 void dodajTekst();
+int procitajRezultat();
+void upisiRezultat(int rezultat);
 
 /*Promenljive za visinu i sirinu ekrana*/
 static int window_width, window_height;
@@ -55,6 +59,7 @@ static std::vector<double> yKoordinataMunicije(1000), zKoordinataMunicije(1000);
 /*Brojac koji govori koliko je metkova pogodjeno i drugi brojac za pogodjene oblake*/
 static int brojacMetkova;
 static int brojPogodjenih;
+static int najbolji_rezultat = procitajRezultat();
 
 static double pocetnaXMunicije, pocetnaYMunicije, pocetnaZMunicije;
 static int kretanjeOblaka;
@@ -90,49 +95,57 @@ int main(int argc, char** argv){
     glEnable(GL_DEPTH_TEST);
     
     /* Program ulazi u glavnu petlju. */
-    glutMainLoop();
-
-    
+    glutMainLoop();    
 }
+
 /*Postavljanje pocetnih vrednosti*/
 void pocetneVrednosti(){
     pomerajPoX = 0.0;
     rotacijaUgla = 45;
     kretanjeOblaka = 0;
     pritisnutoPucanje = 0;
+    
     drugiPut = 0;
     brojacMetkova = 0;
     brojPogodjenih = 0;
+    
     double pocetnaBrzinaPoX = 0.03;
     double pocetnaBrzinaPoY = 0.003;
+    
     prikazi_municiju = false;
     izgubio = 0;
+    
     pocetnaYMunicije = -0.5;
     pocetnaZMunicije = 1.1;
+    
     /*Postavaljanje pocetnih koordinata i boja oblaka na slucajan nacin*/
     srand(time(NULL));
     for(int i = 0; i<100; i++){
-        
         yKoordinateOblaka.at(i) = 0.7 + i;
         double xKoordinata = rand()/(float)RAND_MAX;
     
         double randomBroj = rand()/(float)RAND_MAX;
         if(randomBroj < 0.5){
             xKoordinateOblaka.at(i) = -1*xKoordinata;
-        } else {
+        } 
+        else {
             xKoordinateOblaka.at(i) = xKoordinata;
         }
+        
         double smerKretanja = rand()/(float)RAND_MAX;
         if(smerKretanja < 0.5){
             brzinaOblakaPoX.at(i) = pocetnaBrzinaPoX;
-        } else {
+        } 
+        else {
             brzinaOblakaPoX.at(i) = -pocetnaBrzinaPoX;
         }
+        
         brzinaOblakaPoY.at(i) = pocetnaBrzinaPoY;
         if(i!=0 && i%3 == 0){
             pocetnaBrzinaPoX += 0.01;
             pocetnaBrzinaPoY += 0.001;
         }
+        
         double indikatorZaBoju = rand()/(float)RAND_MAX;
         if(indikatorZaBoju < 0.5)
             bojaOblaka.at(i) = 1;
@@ -144,7 +157,6 @@ void pocetneVrednosti(){
         zKoordinataMunicije.at(i) = pocetnaZMunicije;
     
     }
-    
     /*inicijalizacija matrice rotacije*/
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -161,7 +173,6 @@ static void on_motion(int x, int y){
     /*promene pozicije misa, izracunavanje te promene
      i cuvanje novih pozicija*/
     int deltaX, deltaY;
-    
     deltaX = x - mouse_x;
     deltaY = y - mouse_y;
     mouse_x = x;
@@ -172,18 +183,25 @@ static void on_motion(int x, int y){
     glPushMatrix();
         glLoadIdentity();
         /*Podesavanje parametara topa tako da prate pozicije misa*/
-        if(pomerajPoX <= 1.8 && pomerajPoX >=-1.8)
+        if(pomerajPoX <= 1.8 && pomerajPoX >=-1.8){
             pomerajPoX += deltaX * 0.005;
-        else if(pomerajPoX > 1.8)
+        }
+        else if(pomerajPoX > 1.8){
             pomerajPoX = 1.8;
-        else
+        }
+        else{
             pomerajPoX = -1.8;
-        if(rotacijaUgla <= 90 && rotacijaUgla >= 30)
+        }
+        
+        if(rotacijaUgla <= 90 && rotacijaUgla >= 30){
             rotacijaUgla += deltaY;
-        else if(rotacijaUgla > 90)
+        }
+        else if(rotacijaUgla > 90){
             rotacijaUgla = 90;
-        else 
+        }
+        else{ 
             rotacijaUgla = 30;
+        }
         
         glRotatef(pomerajPoX, 1, 0, 0);
         glMultMatrixf(matrix);        
@@ -197,10 +215,10 @@ static void on_reshape(int width, int height){
 }
 
 static void on_keyboard(unsigned char key, int x, int y){
-    
     switch (key) {
     case 27:
-        /*Izlazak iz programa*/
+        /*Izlazak iz programa i upisivanje rezultata u datoteku*/
+        upisiRezultat(najbolji_rezultat);
         exit(0);
         break;        
     case 's':
@@ -217,11 +235,9 @@ static void on_keyboard(unsigned char key, int x, int y){
         if(kretanjeOblaka){
             if(brojacMetkova<1){
                 pocetnaXMunicije = pomerajPoX;
-            
-                brojacMetkova += 1;
-        
+                brojacMetkova += 1;        
                 pritisnutoPucanje = 1;
-                prikazi_municiju=true;
+                prikazi_municiju = true;
                 glutTimerFunc(TIMER_INTERVAL, pomeranjeMetaka, TIMER_ID1);
             }
         }
@@ -235,9 +251,7 @@ static void on_keyboard(unsigned char key, int x, int y){
     }
 }
 
-
 static void on_display(void){
-    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     /* Podesava se vidna tacka. */
     glViewport(0, 0, window_width, window_height);
@@ -271,18 +285,22 @@ static void on_display(void){
  * kada udari u ivicu ekrana, menja smer kretanja.
  * Ukoliko se desi da crni oblak dodje do postolja, izgubili ste */
 static void pomeranjeOblaka(int value){
-
     if (value != TIMER_ID)
         return;
+    
     unsigned int i = 0;
     if(!izgubio){
         for(i = 0; i<100; i++){
             xKoordinateOblaka.at(i) += brzinaOblakaPoX.at(i);
             yKoordinateOblaka.at(i) -= brzinaOblakaPoY.at(i);
-            if(xKoordinateOblaka.at(i) + 0.2 >= 2 || xKoordinateOblaka.at(i) - 0.2 <= -2)
+            if(xKoordinateOblaka.at(i) + 0.2 >= 2 || xKoordinateOblaka.at(i) - 0.2 <= -2){
                 brzinaOblakaPoX.at(i) *= -1;
+            }
             if(yKoordinateOblaka.at(i) < - 1.1 && !bojaOblaka.at(i)){
-                izgubio = 1;            
+                izgubio = 1;
+                if(najbolji_rezultat < brojPogodjenih){
+                    najbolji_rezultat = brojPogodjenih;
+                }
             }
         }
     }
@@ -306,51 +324,47 @@ static void pomeranjeOblaka(int value){
 /*Postavljane vrednosti za kretanje metaka, detekcija sudara metka sa oblakom
   Metkovi su u obliku loptice i pojavljuju se kad pritisnemo dugme P*/
 static void pomeranjeMetaka(int value){
-
     if (value != TIMER_ID1)
         return;
-   
     
-    for(int i = 0; i<brojacMetkova; i++){
-        
-        if(yKoordinataMunicije.at(i)<2 ){
-            yKoordinataMunicije.at(i) += 0.06/brojacMetkova ;
-            zKoordinataMunicije.at(i) -= 0.05/brojacMetkova ;
-            for(int j = 0; j<100; j++){
-                if(yKoordinataMunicije.at(i) <= yKoordinateOblaka.at(j) + 0.15 &&
-                   yKoordinataMunicije.at(i) >= yKoordinateOblaka.at(j) - 0.15 &&
-                   pocetnaXMunicije <= xKoordinateOblaka.at(j) + 0.25 &&
-                   pocetnaXMunicije >= xKoordinateOblaka.at(j) - 0.25 &&
-                   zKoordinataMunicije.at(i) <= 0.5){
-                    if(!bojaOblaka.at(j)){
-                        brojPogodjenih += 1;
+    if(!izgubio){
+        for(int i = 0; i<brojacMetkova; i++){
+            if(yKoordinataMunicije.at(i)<2 ){
+                yKoordinataMunicije.at(i) += 0.06/brojacMetkova;
+                zKoordinataMunicije.at(i) -= 0.05/brojacMetkova;
+                
+                for(int j = 0; j<100; j++){
+                    if(yKoordinataMunicije.at(i) <= yKoordinateOblaka.at(j) + 0.15 &&
+                       yKoordinataMunicije.at(i) >= yKoordinateOblaka.at(j) - 0.15 &&
+                       pocetnaXMunicije <= xKoordinateOblaka.at(j) + 0.25 &&
+                       pocetnaXMunicije >= xKoordinateOblaka.at(j) - 0.25 &&
+                       zKoordinataMunicije.at(i) <= 0.5){
+                        if(!bojaOblaka.at(j)){
+                            brojPogodjenih += 1;
+                        }
+                        else{
+                            brojPogodjenih -= 1;
+                        }
                         
+                        xKoordinateOblaka.at(j) = -1000;
+                        yKoordinateOblaka.at(j) = 1000000;
                     }
-                    else {
-                        brojPogodjenih -= 1;
-                    }
-                     
-                    yKoordinateOblaka.at(j) = 1000;
                 }
             }
+            else{
+                glutTimerFunc(TIMER_INTERVAL, pomeranjeMetaka, TIMER_ID);
+                yKoordinataMunicije.at(i) = pocetnaYMunicije;
+                zKoordinataMunicije.at(i) = pocetnaZMunicije;
+                prikazi_municiju=false;
+                nacrtajMuniciju();
+                brojacMetkova--;
+            }
+        } 
+        glutPostRedisplay();
+
+        if (brojacMetkova>0){
+            glutTimerFunc(TIMER_INTERVAL, pomeranjeMetaka, TIMER_ID1);
         }
-        
-        else{
-            glutTimerFunc(TIMER_INTERVAL, pomeranjeMetaka, TIMER_ID);
-
-            yKoordinataMunicije.at(i) = pocetnaYMunicije;
-            zKoordinataMunicije.at(i) = pocetnaZMunicije;
-            prikazi_municiju=false;
-            nacrtajMuniciju();
-            brojacMetkova--;
-
-        }
-
-    } 
-    glutPostRedisplay();
-
-    if (brojacMetkova>0)  {
-        glutTimerFunc(TIMER_INTERVAL, pomeranjeMetaka, TIMER_ID1);
     }
 }
 
@@ -362,7 +376,6 @@ void nacrtajPostolje(){
     GLfloat ambijentalno_osvetljenje[] = { 0.35, 0.35, 0.35, 1 };
     GLfloat difuzno_osvetljenje[] = { 0.75, 0.75, 0.75, 1 };
     GLfloat spekularno_osvetljenje[] = { 0.9, 0.9, 0.9, 1 };
-    
     
     GLfloat ambijentalni_materijal[] = { 0.0, 1.0, 0.0, 1 };
     GLfloat difuzni_materijal[] = { 0.0, 0.6, 0.0, 1 };
@@ -387,7 +400,6 @@ void nacrtajPostolje(){
             glScalef(3.5, 0.5, 1);
             glutSolidCube(1);
     glPopMatrix();
-    
 }
 
 /*Crtanje elipsi koje cine oblake*/
@@ -398,44 +410,44 @@ void nacrtajElipsu(double centerX, double centerY, double radiusX, double radius
         for (int i = -1; i < 360; i++) {
             float degInRad = i * DEG2RAD;
             glVertex2d (centerX + cos (degInRad) * radiusX*0.3, 
-                            centerY + sin (degInRad) * radiusY*0.3);
+                        centerY + sin (degInRad) * radiusY*0.3);
         }
-        
     glEnd();
 }
 
 /*Crtanje oblaka koji se sastoji od 5 elipsi*/
 void nacrtajOblak(){
-    
     glDisable(GL_LIGHTING);
     
     for(int i = 0; i<100; i++){
         double x = xKoordinateOblaka.at(i);
         double y = yKoordinateOblaka.at(i);
+        
         glColor3f(bojaOblaka[i], bojaOblaka[i], bojaOblaka[i]);
         nacrtajElipsu(x, y, 1.2, 0.7);
+        
         glColor3f(bojaOblaka[i], bojaOblaka[i], bojaOblaka[i]);
         nacrtajElipsu(x+0.23, y+0.12, 0.35, 0.35);
+        
         glColor3f(bojaOblaka[i], bojaOblaka[i], bojaOblaka[i]);
         nacrtajElipsu(x+0.23, y-0.12, 0.35, 0.35);
+        
         glColor3f(bojaOblaka[i], bojaOblaka[i], bojaOblaka[i]);
         nacrtajElipsu(x-0.23, y-0.12, 0.35, 0.35);
+        
         glColor3f(bojaOblaka[i], bojaOblaka[i], bojaOblaka[i]);
         nacrtajElipsu(x-0.23, y+0.12, 0.35, 0.35);
-        
     }
 }
 
 /*Crtanje topa, koji se sastoji od 3 cilindra.
  * Jednog za cev odakle se puca i dva za tockove*/
 void nacrtajTop(){
-        
     GLfloat pozicija_osvetljenja[] = { 1, 10, 8, 1 };
 
     GLfloat ambijentalno_osvetljenje[] = { 0.35, 0.35, 0.35, 1 };
     GLfloat difuzno_osvetljenje[] = { 0.75, 0.75, 0.75, 1 };
     GLfloat spekularno_osvetljenje[] = { 0.9, 0.9, 0.9, 1 };
-    
     
     GLfloat ambijentalni_materijal[] = { 0.5, 0.5, 0.5, 1 };
     GLfloat difuzni_materijal[] = { 0.6, 0.6, 0.6, 1 };
@@ -454,14 +466,12 @@ void nacrtajTop(){
     glMaterialfv(GL_FRONT, GL_DIFFUSE, difuzni_materijal);
     glMaterialfv(GL_FRONT, GL_SPECULAR, spekularni_materijal);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+    
     glPushMatrix();
         GLUquadricObj *quadratic;
         quadratic = gluNewQuadric();
         glTranslatef(pomerajPoX, -0.5, 1.15);
-        
         glRotatef(rotacijaUgla, 1, 0, 0);
-        
-        
         gluCylinder(quadratic, 0.1f, 0.1f, 0.7f, 72, 72);
     glPopMatrix();        
     
@@ -470,9 +480,7 @@ void nacrtajTop(){
         quadratic1 = gluNewQuadric();
         glRotatef(90, 0, 1, 0);
         glTranslatef(-1.4, -0.95, pomerajPoX+0.1);
-        
         gluCylinder(quadratic1, 0.2f, 0.2f, 0.1f, 72, 72);
-
         glTranslatef(0, 0, -0.3);
         gluCylinder(quadratic1, 0.2f, 0.2f, 0.1f, 72, 72);
     glPopMatrix();
@@ -480,7 +488,6 @@ void nacrtajTop(){
 
 /*Crtanje municije koja ce biti vidljiva tek kada se ispali metak*/
 void nacrtajMuniciju(){
-    
     if(prikazi_municiju==true){
         glDisable(GL_LIGHTING);
         GLfloat pozicija_osvetljenja[] = { 1, 10, 8, 1 };
@@ -488,7 +495,6 @@ void nacrtajMuniciju(){
         GLfloat ambijentalno_osvetljenje[] = { 0.35, 0.35, 0.35, 1 };
         GLfloat difuzno_osvetljenje[] = { 0.75, 0.75, 0.75, 1 };
         GLfloat spekularno_osvetljenje[] = { 0.9, 0.9, 0.9, 1 };
-        
         
         GLfloat ambijentalni_materijal[] = { 0, 0, 0, 1 };
         GLfloat difuzni_materijal[] = { 0.1, 0.1, 0.1, 1 };
@@ -508,7 +514,6 @@ void nacrtajMuniciju(){
         glMaterialfv(GL_FRONT, GL_SPECULAR, spekularni_materijal);
         glMaterialf(GL_FRONT, GL_SHININESS, shininess);
         
-        
         for(int i = 0; i<brojacMetkova; i++){
             glPushMatrix();
             glTranslatef(pocetnaXMunicije, yKoordinataMunicije.at(i),                      
@@ -523,10 +528,8 @@ void nacrtajMuniciju(){
 void dodajTekst(void){
     glDisable(GL_LIGHTING);
     
-
     char tekstZaBrojPogodjenih[MAKSIMALAN_BROJ_KARAKTERA], *p1;
-    sprintf(tekstZaBrojPogodjenih, "Broj pogodjenih: ");
-    
+    sprintf(tekstZaBrojPogodjenih, "Broj pogodjenih: ");    
     glPushMatrix();
         glColor3f(1, 1, 1);
         glTranslatef(-2.2, 1, 0);
@@ -538,7 +541,6 @@ void dodajTekst(void){
     
     char brPogodaka[MAKSIMALAN_BROJ_KARAKTERA], *p2;
     sprintf(brPogodaka, "%d", brojPogodjenih);
-    
     glPushMatrix();
         glColor3f(1, 1, 1);
         glTranslatef(-1.2, 1, 0);
@@ -547,22 +549,61 @@ void dodajTekst(void){
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p2);
         }
     glPopMatrix();
-        
-    char tekstZaKraj[MAKSIMALAN_BROJ_KARAKTERA], *p3;
-    sprintf(tekstZaKraj, "IZGUBILI STE!");
     
+    char tekstZaNajboljiRezultat[MAKSIMALAN_BROJ_KARAKTERA], *p3;
+    sprintf(tekstZaNajboljiRezultat, "Najbolji rezultat: ");    
+    glPushMatrix();
+        glColor3f(1, 1, 1);
+        glTranslatef(-2.2, 0.8, 0);
+        glRasterPos3f(0.2, 0.7, 0);
+        for(p3 = tekstZaNajboljiRezultat; *p3!= '\0'; p3++){
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p3);
+        }
+    glPopMatrix();
+    
+    char najRezultat[MAKSIMALAN_BROJ_KARAKTERA], *p4;
+    sprintf(najRezultat, "%d", najbolji_rezultat);
+    glPushMatrix();
+        glColor3f(1, 1, 1);
+        glTranslatef(-1.2, 0.8, 0);
+        glRasterPos3f(0.2, 0.7, 0);
+        for(p4 = najRezultat; *p4!= '\0'; p4++){
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p4);
+        }
+    glPopMatrix();
+    
+    char tekstZaKraj[MAKSIMALAN_BROJ_KARAKTERA], *p5;
+    sprintf(tekstZaKraj, "IZGUBILI STE!");
     if(izgubio){
         glPushMatrix();
         glColor3f(1, 1, 1);
         glTranslatef(-0.7, 0, 0);
         glRasterPos3f(0.2, 0.7, 0);
-        for(p3 = tekstZaKraj; *p3!= '\0'; p3++){
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p3);
+        for(p5 = tekstZaKraj; *p5!= '\0'; p5++){
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p5);
         }
         glPopMatrix();
     }
-    
 }
 
+/*funckija za citanje najboljeg rezultata iz fajla*/
+int procitajRezultat(){
+    int rezultat;
+    std::ifstream fajlCitanje ("najbolji_rezultati.txt");
+    if (fajlCitanje.is_open()){
+        fajlCitanje >> rezultat;
+        fajlCitanje.close();
+    }
+    else 
+        std::cout << "Unable to open file"; 
+    
+    return rezultat;
+}
 
-
+/*funckija za upisivanje najboljeg rezultata u fajl*/
+void upisiRezultat(int rezultat){
+    std::ofstream fajlPisanje;
+    fajlPisanje.open("najbolji_rezultati.txt");
+    fajlPisanje << rezultat;
+    fajlPisanje.close();
+}
