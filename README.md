@@ -7,7 +7,7 @@ Cloudy igra predstavlja projekat iz predmeta Racunarska grafika na Matematickom 
 ### Programski jezik: 
 C++ OpenGL i GLUT biblioteka
 ### Cilj igre: 
-Pogoditi crne oblake i tako zaraditi poene, dok pogodak u beli oblak dovodi do negativnih poena.
+Pogoditi crne i sive oblake i tako zaraditi poene, svaki pogodak u sivi oblak dovodi do 2 poena a u crni do 1 poena. Pogodak u beli oblak dovodi do negativnog poena. Svaki promasaj crnog ili sivog oblaka dovodi do gubitka jednog od 3 zivota.
 ### Instalacija: 
 Potrebno je imati GLUT biblioteku instaliran g++ prevodioc  
 U terminalu ukucajte:  
