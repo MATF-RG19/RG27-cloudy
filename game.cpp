@@ -119,7 +119,7 @@ void pocetneVrednosti() {
     brojZivota = 3;
     /*Postavaljanje pocetnih koordinata i boja oblaka na slucajan nacin*/
     srand(time(NULL));
-    for(int i = 0; i<100; i++) {
+    for (int i = 0; i<100; i++) {
         yKoordinateOblaka.at(i) = 0.7 + i;
         double xKoordinata = rand()/(float)RAND_MAX;
     
@@ -185,8 +185,7 @@ static void on_motion(int x, int y) {
             pomerajPoX += deltaX * 0.005;
         } else if (pomerajPoX > 1.8) {
             pomerajPoX = 1.8;
-        }
-        else {
+        } else {
             pomerajPoX = -1.8;
         }
         
@@ -285,7 +284,7 @@ static void pomeranjeOblaka(int value) {
     
     unsigned int i = 0;
     if (!izgubio) {
-        for(i = 0; i<100; i++) {
+        for (i = 0; i<100; i++) {
             xKoordinateOblaka.at(i) += brzinaOblakaPoX.at(i);
             yKoordinateOblaka.at(i) -= brzinaOblakaPoY.at(i);
             if (xKoordinateOblaka.at(i) + 0.2 >= 2 || xKoordinateOblaka.at(i) - 0.2 <= -2) {
@@ -296,14 +295,14 @@ static void pomeranjeOblaka(int value) {
                 brojZivota -= 1;
                 if (brojZivota == 0) {
                     izgubio = 1;
-                    if(najbolji_rezultat < brojPogodjenih){
+                    if (najbolji_rezultat < brojPogodjenih) {
                         najbolji_rezultat = brojPogodjenih;
                     }
                 }
             }
         }
     } else {
-        for(i=0; i<100; i++) {
+        for (i=0; i<100; i++) {
             if (yKoordinateOblaka.at(i) >= -4) {
                 yKoordinateOblaka.at(i) -= 0.3;
             }
@@ -327,15 +326,15 @@ static void pomeranjeMetaka(int value) {
     
     if (!izgubio) {
         for (int i = 0; i<brojacMetkova; i++) {
-            if(yKoordinataMunicije.at(i)<2 ) {
-                yKoordinataMunicije.at(i) += 0.06;
-                zKoordinataMunicije.at(i) -= 0.05;
+            if (yKoordinataMunicije.at(i)<2 ) {
+                yKoordinataMunicije.at(i) += 0.04 + (0.04*rotacijaUgla*1.0/90);
+                zKoordinataMunicije.at(i) -= 0.03 + (0.03*(1-rotacijaUgla*1.0/90));
                 
-                for(int j = 0; j<100; j++) {
+                for (int j = 0; j<100; j++) {
                     if (yKoordinataMunicije.at(i) <= yKoordinateOblaka.at(j) + 0.15 &&
                        yKoordinataMunicije.at(i) >= yKoordinateOblaka.at(j) - 0.15 &&
-                       pocetnaXMunicije <= xKoordinateOblaka.at(j) + 0.25 &&
-                       pocetnaXMunicije >= xKoordinateOblaka.at(j) - 0.25 &&
+                       pocetnaXMunicije <= xKoordinateOblaka.at(j) + 0.27 &&
+                       pocetnaXMunicije >= xKoordinateOblaka.at(j) - 0.27 &&
                        zKoordinataMunicije.at(i) <= 0.5) {
                         if (bojaOblaka.at(j) == 0) {
                             brojPogodjenih += 1;
@@ -417,7 +416,7 @@ void nacrtajElipsu(double centerX, double centerY, double radiusX, double radius
 void nacrtajOblak() {
     glDisable(GL_LIGHTING);
     
-    for(int i = 0; i<100; i++) {
+    for (int i = 0; i<100; i++) {
         double x = xKoordinateOblaka.at(i);
         double y = yKoordinateOblaka.at(i);
         
@@ -486,7 +485,7 @@ void nacrtajTop() {
 
 /*Crtanje municije koja ce biti vidljiva tek kada se ispali metak*/
 void nacrtajMuniciju() {
-    if (prikazi_municiju==true) {
+    if (prikazi_municiju == true) {
         glDisable(GL_LIGHTING);
         GLfloat pozicija_osvetljenja[] = { 1, 10, 8, 1 };
 
@@ -512,7 +511,7 @@ void nacrtajMuniciju() {
         glMaterialfv(GL_FRONT, GL_SPECULAR, spekularni_materijal);
         glMaterialf(GL_FRONT, GL_SHININESS, shininess);
         
-        for(int i = 0; i<brojacMetkova; i++) {
+        for (int i = 0; i<brojacMetkova; i++) {
             glPushMatrix();
             glTranslatef(pocetnaXMunicije, yKoordinataMunicije.at(i),                      
                         zKoordinataMunicije.at(i));
@@ -532,7 +531,7 @@ void dodajTekst(void) {
         glColor3f(1, 1, 1);
         glTranslatef(-2.2, 1, 0);
         glRasterPos3f(0.2, 0.7, 0);
-        for(p1 = tekstZaBrojPogodjenih; *p1!= '\0'; p1++) {
+        for (p1 = tekstZaBrojPogodjenih; *p1!= '\0'; p1++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p1);
         }
     glPopMatrix();
@@ -543,7 +542,7 @@ void dodajTekst(void) {
         glColor3f(1, 1, 1);
         glTranslatef(-1.2, 1, 0);
         glRasterPos3f(0.2, 0.7, 0);
-        for(p2 = brPogodaka; *p2!= '\0'; p2++) {
+        for (p2 = brPogodaka; *p2!= '\0'; p2++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p2);
         }
     glPopMatrix();
@@ -554,7 +553,7 @@ void dodajTekst(void) {
         glColor3f(1, 1, 1);
         glTranslatef(-2.2, 0.8, 0);
         glRasterPos3f(0.2, 0.7, 0);
-        for(p3 = tekstZaNajboljiRezultat; *p3!= '\0'; p3++) {
+        for (p3 = tekstZaNajboljiRezultat; *p3!= '\0'; p3++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p3);
         }
     glPopMatrix();
@@ -565,7 +564,7 @@ void dodajTekst(void) {
         glColor3f(1, 1, 1);
         glTranslatef(-1.2, 0.8, 0);
         glRasterPos3f(0.2, 0.7, 0);
-        for(p4 = najRezultat; *p4!= '\0'; p4++) {
+        for (p4 = najRezultat; *p4!= '\0'; p4++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p4);
         }
     glPopMatrix();
@@ -577,7 +576,7 @@ void dodajTekst(void) {
         glColor3f(1, 1, 1);
         glTranslatef(-0.7, 0, 0);
         glRasterPos3f(0.2, 0.7, 0);
-        for(p5 = tekstZaKraj; *p5!= '\0'; p5++) {
+        for (p5 = tekstZaKraj; *p5!= '\0'; p5++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p5);
         }
         glPopMatrix();
@@ -589,7 +588,7 @@ void dodajTekst(void) {
         glColor3f(1, 1, 1);
         glTranslatef(-2.2, 0.6, 0);
         glRasterPos3f(0.2, 0.7, 0);
-        for(p6 = tekstBrojZivota; *p6!= '\0'; p6++) {
+        for (p6 = tekstBrojZivota; *p6!= '\0'; p6++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p6);
         }
     glPopMatrix();
@@ -600,7 +599,7 @@ void dodajTekst(void) {
         glColor3f(1, 1, 1);
         glTranslatef(-1.2, 0.6, 0);
         glRasterPos3f(0.2, 0.7, 0);
-        for(p7 = brZivota; *p7!= '\0'; p7++) {
+        for (p7 = brZivota; *p7!= '\0'; p7++) {
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *p7);
         }
     glPopMatrix();
@@ -614,8 +613,9 @@ int procitajRezultat() {
     if (fajlCitanje.is_open()) {
         fajlCitanje >> rezultat;
         fajlCitanje.close();
-    } else 
+    } else {
         std::cout << "Unable to open file"; 
+    }
     
     return rezultat;
 }
