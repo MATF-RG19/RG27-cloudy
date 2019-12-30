@@ -1,4 +1,4 @@
-# RG167-cloudy
+# RG27-cloudy
 
 ## PROJEKAT IZ RACUNARSKE GRAFIKE
 
